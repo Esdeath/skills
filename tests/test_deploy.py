@@ -6,8 +6,10 @@ import unittest
 from pathlib import Path
 
 
-SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "deploy.py"
-LAUNCHER = Path(__file__).resolve().parents[1] / "deploy.sh"
+ROOT = Path(__file__).resolve().parents[1]
+SCRIPT = ROOT / "scripts" / "deploy.py"
+LAUNCHER = ROOT / "deploy.sh"
+GITIGNORE = ROOT / ".gitignore"
 
 
 def git(directory: Path, *args: str, capture: bool = True) -> str:
@@ -42,6 +44,7 @@ class DeployScriptTests(unittest.TestCase):
         (repo / "scripts").mkdir()
         shutil.copy(LAUNCHER, repo / "deploy.sh")
         shutil.copy(SCRIPT, repo / "scripts" / "deploy.py")
+        shutil.copy(GITIGNORE, repo / ".gitignore")
         (repo / "tracked.txt").write_text("original\n", encoding="utf-8")
         (repo / "deleted.txt").write_text("delete me\n", encoding="utf-8")
         git(repo, "add", "-A")
@@ -74,14 +77,40 @@ class DeployScriptTests(unittest.TestCase):
         self.assertEqual(git(repo, "rev-parse", "--abbrev-ref", "@{upstream}"), "origin/main")
 
     def test_skips_commit_when_there_are_no_changes_and_still_pushes(self):
-        repo, _ = self.make_repository()
+        repo, remote = self.make_repository()
+        (repo / "tracked.txt").write_text("local commit\n", encoding="utf-8")
+        git(repo, "add", "tracked.txt")
+        git(repo, "commit", "-m", "Local commit")
+        local_commit = git(repo, "rev-parse", "HEAD")
         before = git(repo, "rev-list", "--count", "HEAD")
+        self.assertEqual(git(repo, "status", "--porcelain"), "")
+        self.assertNotEqual(git_dir(remote, "rev-parse", "main"), local_commit)
 
         result = self.run_deploy(repo)
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("No changes to commit.", result.stdout)
         self.assertEqual(git(repo, "rev-list", "--count", "HEAD"), before)
+        self.assertEqual(git_dir(remote, "rev-parse", "main"), local_commit)
+
+    def test_ignores_python_bytecode_artifacts(self):
+        repo, _ = self.make_repository()
+        artifacts = [
+            repo / "scripts" / "__pycache__" / "deploy.cpython-314.pyc",
+            repo / "legacy.pyo",
+        ]
+
+        for artifact in artifacts:
+            artifact.parent.mkdir(parents=True, exist_ok=True)
+            artifact.write_bytes(b"bytecode")
+
+        for artifact in artifacts:
+            with self.subTest(artifact=artifact.name):
+                result = subprocess.run(
+                    ["git", "check-ignore", "--quiet", str(artifact.relative_to(repo))],
+                    cwd=repo,
+                )
+                self.assertEqual(result.returncode, 0)
 
     def test_fails_clearly_when_origin_is_missing(self):
         repo = self.make_repository(with_remote=False)[0]
