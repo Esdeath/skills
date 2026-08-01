@@ -1,3 +1,4 @@
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -6,6 +7,7 @@ from pathlib import Path
 
 
 SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "deploy.py"
+LAUNCHER = Path(__file__).resolve().parents[1] / "deploy.sh"
 
 
 def git(directory: Path, *args: str, capture: bool = True) -> str:
@@ -37,6 +39,9 @@ class DeployScriptTests(unittest.TestCase):
         git(root, "init", "--initial-branch=main", str(repo))
         git(repo, "config", "user.name", "Deploy Test")
         git(repo, "config", "user.email", "deploy-test@example.com")
+        (repo / "scripts").mkdir()
+        shutil.copy(LAUNCHER, repo / "deploy.sh")
+        shutil.copy(SCRIPT, repo / "scripts" / "deploy.py")
         (repo / "tracked.txt").write_text("original\n", encoding="utf-8")
         (repo / "deleted.txt").write_text("delete me\n", encoding="utf-8")
         git(repo, "add", "-A")
@@ -94,3 +99,15 @@ class DeployScriptTests(unittest.TestCase):
 
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("detached HEAD", result.stderr)
+
+    def test_launcher_publishes_from_outside_repository(self):
+        repo, _ = self.make_repository()
+        (repo / "new.txt").write_text("via launcher\n", encoding="utf-8")
+        result = subprocess.run(
+            [str(repo / "deploy.sh")],
+            cwd=repo.parent,
+            text=True,
+            capture_output=True,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(git(repo, "log", "-1", "--format=%s"), "chore: update project")
