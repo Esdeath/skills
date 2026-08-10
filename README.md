@@ -8,7 +8,7 @@
 
 ### [`star-value-snapshot`](star-value-snapshot/SKILL.md)
 
-为指定港股生成一份 HTML 快照和一份 Markdown 底稿。技能会读取东方财富港股 F10 财务数据与腾讯行情，核对币种、历史股本、股息字段、上市前会计失真和行情日期，再用 Python 计算页面中的衍生指标。
+为指定港股生成一份 HTML 快照和一份 Markdown 底稿。技能会读取东方财富港股 F10 财务数据与腾讯行情，核对币种、历史股本、股息字段、上市前会计失真和行情日期，再用 Python 计算页面中的所有衍生指标。
 
 它只整理已披露数据及其直接运算，不提供预测、目标价、评级或跨公司比较。分析结构包括入口检验、五步扫描、5 秒心算和五问清单。
 
@@ -23,13 +23,13 @@
 
 ### 安装
 
-推荐在 Codex 中调用内置的 `$skill-installer`：
+推荐在 Codex 中让 `$skill-installer` 从 GitHub 仓库安装技能：
 
 ```text
 $skill-installer install the star-value-snapshot skill from https://github.com/Esdeath/skills
 ```
 
-也可以手动安装到用户级技能目录：
+在 macOS 或 Linux 上，也可以手动安装到用户级技能目录：
 
 ```bash
 git clone https://github.com/Esdeath/skills.git
@@ -55,12 +55,14 @@ $star-value-snapshot 为 09992 泡泡玛特生成企业快照
 
 ## 输出与原则
 
-每次运行会在当前项目根目录生成两个内容一致的文件：
+每次运行会在 Codex 当前处理的项目根目录生成两个文件；它们用不同格式承载同一组事实和判定：
 
 ```text
 HK_{公司简称}({5位代码}).html
 HK_{公司简称}({5位代码}).md
 ```
+
+其中，`公司简称` 是公司的中文简称，`5位代码` 是五位港股代码。
 
 - HTML 使用 [`assets/template.html`](star-value-snapshot/assets/template.html) 渲染，适合浏览和打印。
 - Markdown 使用 [`assets/template.md`](star-value-snapshot/assets/template.md) 渲染，适合发布、版本管理和保留决策记录。
@@ -98,15 +100,15 @@ python3 -m unittest discover -s tests -v
 
 ## 发布
 
-> 此命令供仓库维护者使用。运行前请检查当前分支和工作区中的全部变更。
+> 此命令供仓库维护者使用。它会提交仓库中的全部变更，包括运行前已暂存的内容；请勿用它发布部分文件。
 
 ```bash
 ./deploy.sh
 ```
 
-脚本会执行相当于 `git add -A` 的操作，暂存新增、修改和删除的文件；如果存在待提交内容，它会使用固定提交信息 `chore: update project` 创建提交，随后把当前分支推送到 `origin` 并设置上游分支。没有文件变更时，脚本仍会推送已有的本地提交。
+[`scripts/deploy.py`](scripts/deploy.py) 会执行相当于 `git add -A` 的操作，暂存新增、修改、删除以及运行前已暂存的内容；如果存在待提交内容，它会使用固定提交信息 `chore: update project` 创建提交，随后把当前分支推送到 `origin` 并设置上游分支。没有文件变更时，脚本仍会推送已有的本地提交。
 
-脚本要求当前目录属于 Git 工作树、已配置 `origin`，并且 `HEAD` 指向分支；它不会拉取远端、更换分支、改写提交或强制推送。
+脚本要求当前目录属于 Git 工作树、已配置 `origin`，并且 `HEAD` 指向分支；它不会自动运行测试、拉取远端、更换分支、改写提交或强制推送。
 
 ## 参考资料
 
