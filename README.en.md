@@ -2,15 +2,19 @@
 
 # Codex Skills
 
-This repository contains reusable skills for Codex. It currently provides `star-value-snapshot`, which creates public-data investment snapshots for companies listed in Hong Kong.
+This repository contains reusable skills for Codex. It currently provides `star-value-snapshot`, which creates public-data investment snapshots for companies listed in Hong Kong, and `git-commit`, which governs how commits are staged and pushed in any Git repository.
 
-## Available Skill
+## Available Skills
 
 ### [`star-value-snapshot`](star-value-snapshot/SKILL.md)
 
 The skill produces an HTML snapshot and a Markdown source document for a specified Hong Kong stock. It reads financial data from Eastmoney's Hong Kong F10 endpoint and quotes from Tencent, checks currency boundaries, historical share counts, dividend fields, pre-IPO accounting distortions, and quote dates, then uses Python to calculate every derived metric shown in the output.
 
 It uses disclosed facts and direct arithmetic only. It does not provide forecasts, target prices, ratings, or cross-company comparisons. The analysis covers an entry screen, a five-step scan, five-second mental checks, and a five-question checklist.
+
+### [`git-commit`](git-commit/SKILL.md)
+
+A general procedure for committing and pushing in any Git repository: identify which task each change belongs to, stage one task at a time (one commit per task), rebase onto the upstream before pushing, and refuse both blind staging and force-pushing. It also covers writing commit messages and resolving rebase conflicts.
 
 ## Quick Start
 
@@ -34,7 +38,7 @@ On macOS or Linux, you can also install the skill manually in your user-level sk
 ```bash
 git clone https://github.com/Esdeath/skills.git
 mkdir -p "$HOME/.agents/skills"
-cp -R skills/star-value-snapshot "$HOME/.agents/skills/"
+cp -R skills/star-value-snapshot skills/git-commit "$HOME/.agents/skills/"
 ```
 
 Codex usually detects a newly installed skill automatically. Restart Codex if it does not appear. You can also keep repository-scoped skills under `.agents/skills`; see the [OpenAI skills documentation](https://learn.chatgpt.com/docs/build-skills) for the supported locations.
@@ -51,6 +55,12 @@ You can also describe the task and let Codex match the skill from its descriptio
 
 ```text
 Create a value-investing company snapshot for Tencent (HKEX: 00700).
+```
+
+`git-commit` can be invoked explicitly, and it also matches automatically when you ask for code to be committed or pushed:
+
+```text
+$git-commit Commit the current changes in per-task batches and push them.
 ```
 
 ## Output And Principles
@@ -76,6 +86,8 @@ Here, `公司简称` is the company's short Chinese name and `5位代码` is its
 .
 ├── README.md
 ├── README.en.md
+├── git-commit/
+│   └── SKILL.md
 ├── star-value-snapshot/
 │   ├── SKILL.md
 │   ├── assets/
@@ -114,3 +126,4 @@ The script requires a Git worktree, a configured `origin`, and a branch-attached
 
 - [OpenAI: Build skills](https://learn.chatgpt.com/docs/build-skills)
 - [Full `star-value-snapshot` instructions](star-value-snapshot/SKILL.md)
+- [Full `git-commit` instructions](git-commit/SKILL.md)

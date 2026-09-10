@@ -2,7 +2,7 @@
 
 # Codex Skills
 
-这个仓库收录可复用的 Codex 技能。当前提供 `star-value-snapshot`，用于为港股上市公司生成基于公开数据的价值投资快照。
+这个仓库收录可复用的 Codex 技能。当前提供 `star-value-snapshot`（为港股上市公司生成基于公开数据的价值投资快照）与 `git-commit`（Git 提交与推送通用规程）。
 
 ## 可用技能
 
@@ -11,6 +11,10 @@
 为指定港股生成一份 HTML 快照和一份 Markdown 底稿。技能会读取东方财富港股 F10 财务数据与腾讯行情，核对币种、历史股本、股息字段、上市前会计失真和行情日期，再用 Python 计算页面中的所有衍生指标。
 
 它只整理已披露数据及其直接运算，不提供预测、目标价、评级或跨公司比较。分析结构包括入口检验、五步扫描、5 秒心算和五问清单。
+
+### [`git-commit`](git-commit/SKILL.md)
+
+约束 Git 提交与推送的通用规程：先弄清每处改动的归属，按任务隔离分批暂存（一个任务一个 commit），推送前变基到上游，并禁止盲暂存与 force-push。适用于任意 Git 仓库，也可直接用来编写提交说明或处理变基冲突。
 
 ## 快速开始
 
@@ -34,7 +38,7 @@ $skill-installer install the star-value-snapshot skill from https://github.com/E
 ```bash
 git clone https://github.com/Esdeath/skills.git
 mkdir -p "$HOME/.agents/skills"
-cp -R skills/star-value-snapshot "$HOME/.agents/skills/"
+cp -R skills/star-value-snapshot skills/git-commit "$HOME/.agents/skills/"
 ```
 
 Codex 通常会自动识别新技能；如果技能没有出现，请重启 Codex。Codex 也支持把技能放在仓库内的 `.agents/skills` 目录中，详见 [OpenAI 技能文档](https://learn.chatgpt.com/docs/build-skills)。
@@ -51,6 +55,12 @@ $star-value-snapshot 为 09992 泡泡玛特生成企业快照
 
 ```text
 为 00700 腾讯生成价值线企业快照版
+```
+
+`git-commit` 可以显式调用，也会在你要求提交或推送代码时自动匹配：
+
+```text
+$git-commit 把当前改动按任务分批提交并推送到远端
 ```
 
 ## 输出与原则
@@ -76,6 +86,8 @@ HK_{公司简称}({5位代码}).md
 .
 ├── README.md
 ├── README.en.md
+├── git-commit/
+│   └── SKILL.md
 ├── star-value-snapshot/
 │   ├── SKILL.md
 │   ├── assets/
@@ -114,3 +126,4 @@ python3 -m unittest discover -s tests -v
 
 - [OpenAI：Build skills](https://learn.chatgpt.com/docs/build-skills)
 - [`star-value-snapshot` 完整说明](star-value-snapshot/SKILL.md)
+- [`git-commit` 完整说明](git-commit/SKILL.md)
